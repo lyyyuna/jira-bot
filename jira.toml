@@ -1,0 +1,10 @@
+project = "google"
+wxkey = ""
+username = "" # 连接 jira 所用的用户名
+password = "" # 连接 jira 所用的密码
+host = "https://jira.google.io/"
+
+[[filter]]
+name = "目前还未解决的 Bug"
+jql = "type = 缺陷 AND status != 关闭 AND status != 无需处理"
+split = true # 如果为 true，结果将按照 assignee 详细展示，否则只展示总数
