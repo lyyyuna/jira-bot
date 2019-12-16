@@ -42,6 +42,10 @@ func RunFilter(jiraConf TomlConfig) []*SectionStats {
 		}
 
 		for _, issue := range issues {
+			if issue.Fields.Assignee == nil {
+				log.Errorf("This issue has no assignee, the issue is: %v", issue.Fields.Summary)
+				continue
+			}
 			// log.Info(issue.Fields.Assignee.Name, issue.Fields.Summary)
 			jiraName := issue.Fields.Assignee.Name
 			if _, ok := section.Users[jiraName]; ok {

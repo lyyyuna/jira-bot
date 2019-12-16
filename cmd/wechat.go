@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	. "jira-bot/internal"
@@ -55,6 +54,6 @@ func markdown(sections []*SectionStats) string {
 	if err != nil {
 		log.Fatalf("Error while applying template, the error is: %v", err)
 	}
-
+	log.Println(buf.String())
 	return buf.String()
 }

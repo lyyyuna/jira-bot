@@ -8,3 +8,8 @@ host = "https://jira.google.io/"
 name = "目前还未解决的 Bug"
 jql = "type = 缺陷 AND status != 关闭 AND status != 无需处理"
 split = true # 如果为 true，结果将按照 assignee 详细展示，否则只展示总数
+
+[[filter]]
+name = "目前还未完成的需求"
+jql = "type = 需求 AND status != 关闭 AND status != 无需处理"
+split = true
