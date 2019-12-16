@@ -31,10 +31,13 @@ var wechatCmd = &cobra.Command{
 func wechat(cmd *cobra.Command, args []string) {
 	readConfig()
 	sections := RunFilter(jiraConf)
-	markdown(sections)
+	content := markdown(sections)
+
+	c := NewWechatClient(jiraConf.Wxkey)
+	c.SendToWechat(content)
 }
 
-func markdown(sections []*SectionStats) {
+func markdown(sections []*SectionStats) string {
 	tmpl, err := template.New("jira").Parse(jiraTemplate)
 	if err != nil {
 		log.Fatalf("Error while parsing template, the error is: %v", err)
@@ -52,5 +55,6 @@ func markdown(sections []*SectionStats) {
 	if err != nil {
 		log.Fatalf("Error while applying template, the error is: %v", err)
 	}
-	fmt.Println(buf.String())
+
+	return buf.String()
 }
