@@ -10,14 +10,11 @@ import (
 
 const jiraTemplate = `
 # {{.Info.Project}}
-{{range .Sections}}
-## {{.Name}}
-总数： [{{.Cnt}}]({{.Url}})
-{{if .Split}}
-{{range $k, $v := .Users}}{{$k}} 有 [{{$v.Cnt}}]({{$v.Url}})
+## {{.Section.Name}}
+总数： [{{.Section.Cnt}}]({{.Section.Url}})
+{{if .Section.Split}}
+{{range $k, $v := .Section.Users}}{{$k}} 有 [{{$v.Cnt}}]({{$v.Url}})
 {{end}}
-{{end}}
-
 {{end}}
 `
 
@@ -30,13 +27,16 @@ var wechatCmd = &cobra.Command{
 func wechat(cmd *cobra.Command, args []string) {
 	readConfig()
 	sections := RunFilter(jiraConf)
-	content := markdown(sections)
-
 	c := NewWechatClient(jiraConf.Wxkey)
-	c.SendToWechat(content)
+
+	for _, section := range sections {
+		content := markdown(section)
+		c.SendToWechat(content)
+	}
+
 }
 
-func markdown(sections []*SectionStats) string {
+func markdown(section *SectionStats) string {
 	tmpl, err := template.New("jira").Parse(jiraTemplate)
 	if err != nil {
 		log.Fatalf("Error while parsing template, the error is: %v", err)
@@ -44,11 +44,11 @@ func markdown(sections []*SectionStats) string {
 
 	var buf bytes.Buffer
 	items := struct {
-		Info     TomlConfig
-		Sections []*SectionStats
+		Info    TomlConfig
+		Section *SectionStats
 	}{
-		Info:     jiraConf,
-		Sections: sections,
+		Info:    jiraConf,
+		Section: section,
 	}
 	err = tmpl.Execute(&buf, &items)
 	if err != nil {
