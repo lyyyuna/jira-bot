@@ -1,7 +1,16 @@
 package internal
 
+type SectionStats struct {
+	Name  string
+	Jql   string
+	Url   string
+	Cnt   int
+	Users map[string]*UserStats
+	Split bool
+}
+
 type UserStats struct {
-	Name string
-	Jql  string
-	Cnt  string
+	Jql string
+	Cnt int
+	Url string
 }

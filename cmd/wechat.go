@@ -1,10 +1,26 @@
 package cmd
 
 import (
-	"github.com/andygrunwald/go-jira"
+	"bytes"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	. "jira-bot/internal"
+	"text/template"
 )
+
+const jiraTemplate = `
+# {{.Info.Project}}
+{{range .Sections}}
+## {{.Name}}
+总数： [{{.Cnt}}]({{.Url}})
+{{if .Split}}
+{{range $k, $v := .Users}}{{$k}} 有 [{{$v.Cnt}}]({{$v.Url}})
+{{end}}
+{{end}}
+
+{{end}}
+`
 
 var wechatCmd = &cobra.Command{
 	Use:   "wechat",
@@ -14,29 +30,27 @@ var wechatCmd = &cobra.Command{
 
 func wechat(cmd *cobra.Command, args []string) {
 	readConfig()
-	jiraFilter()
+	sections := RunFilter(jiraConf)
+	markdown(sections)
 }
 
-func jiraFilter() {
-	tp := jira.BasicAuthTransport{
-		Username: jiraConf.Username,
-		Password: jiraConf.Password,
-	}
-	jClient, err := jira.NewClient(tp.Client(), jiraConf.Host)
+func markdown(sections []*SectionStats) {
+	tmpl, err := template.New("jira").Parse(jiraTemplate)
 	if err != nil {
-		log.Fatal("Fail to connect to JIRA server, the error is: %v", err)
+		log.Fatalf("Error while parsing template, the error is: %v", err)
 	}
 
-	for _, filter := range jiraConf.Filter {
-		log.Info(filter.Name)
-		opt := &jira.SearchOptions{}
-		issues, _, err := jClient.Issue.Search(filter.Jql, opt)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		for _, issue := range issues {
-			log.Info(jiraConf.Users[issue.Fields.Assignee.Name], issue.Fields.Summary)
-		}
+	var buf bytes.Buffer
+	items := struct {
+		Info     TomlConfig
+		Sections []*SectionStats
+	}{
+		Info:     jiraConf,
+		Sections: sections,
 	}
-
+	err = tmpl.Execute(&buf, &items)
+	if err != nil {
+		log.Fatalf("Error while applying template, the error is: %v", err)
+	}
+	fmt.Println(buf.String())
 }
