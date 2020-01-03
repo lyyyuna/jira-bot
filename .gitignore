@@ -15,5 +15,5 @@
 # vendor/
 
 jira-bot
-jira-ex.toml
+jira-ex*.toml
 .idea/

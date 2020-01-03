@@ -29,11 +29,22 @@ func RunFilter(jiraConf TomlConfig) []*SectionStats {
 		}
 		jiraStats = append(jiraStats, section)
 		log.Infof("Filter name: %v", filter.Name)
-		opt := &jira.SearchOptions{}
-		issues, _, err := jClient.Issue.Search(filter.Jql, opt)
-		if err != nil {
-			log.Fatalln(err)
+
+		var issues []jira.Issue
+		for index := 0; ; {
+			opt := &jira.SearchOptions{StartAt: index}
+			pagedIssues, response, err := jClient.Issue.Search(filter.Jql, opt)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			issues = append(issues, pagedIssues...)
+			log.Infoln(response.StartAt, response.MaxResults, response.Total)
+			index += 50
+			if response.StartAt+response.MaxResults >= response.Total {
+				break
+			}
 		}
+
 		section.Cnt = len(issues)
 		// Skip if split is false
 		// true will display the results grouped by name
